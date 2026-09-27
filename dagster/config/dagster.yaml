@@ -57,6 +57,7 @@ run_storage:
         env: DAGSTER_POSTGRES_DB
       port: 5432
       params:
+        hostaddr: 2a01:4b00:ad59:aa00::1570
         sslmode: require
 
 schedule_storage:
@@ -74,6 +75,7 @@ schedule_storage:
         env: DAGSTER_POSTGRES_DB
       port: 5432
       params:
+        hostaddr: 2a01:4b00:ad59:aa00::1570
         sslmode: require
 
 event_log_storage:
@@ -91,6 +93,7 @@ event_log_storage:
         env: DAGSTER_POSTGRES_DB
       port: 5432
       params:
+        hostaddr: 2a01:4b00:ad59:aa00::1570
         sslmode: require
 
 telemetry:
