@@ -1,0 +1,61 @@
+
+services:
+
+  tools:
+    image: 'corentinth/it-tools:latest'
+    restart: always
+    container_name: it-tools
+    networks:
+      - tools
+    labels:
+      traefik.enable: true
+      traefik.http.routers.tools.rule: Host(`tools.home.marcinszymanski.pl`)
+      traefik.http.routers.tools.tls.certresolver: letsencrypt
+      traefik.http.routers.tools.entrypoints: websecure
+      traefik.http.routers.tools.tls: true
+      traefik.docker.network: tools
+
+  nettools:
+    image: lissy93/networking-toolbox:latest
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - HOST=0.0.0.0
+    restart: always
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - tools
+    labels:
+      traefik.enable: true
+      traefik.http.routers.nettools.rule: Host(`nettools.home.marcinszymanski.pl`)
+      traefik.http.routers.nettools.tls.certresolver: letsencrypt
+      traefik.http.routers.nettools.entrypoints: websecure
+      traefik.http.routers.nettools.tls: true
+      traefik.docker.network: tools
+
+  pdf:
+    image: ghcr.io/alam00000/bentopdf-simple:latest
+    restart: always
+    container_name: bentopdf
+    networks:
+      - tools
+    labels:
+      traefik.enable: true
+      traefik.http.routers.pdf.rule: Host(`pdf.home.marcinszymanski.pl`)
+      traefik.http.routers.pdf.tls.certresolver: letsencrypt
+      traefik.http.routers.pdf.entrypoints: websecure
+      traefik.http.routers.pdf.tls: true
+      traefik.docker.network: tools
+
+networks:
+  tools:
+    name: tools
+    enable_ipv6: true
+    ipam:
+      config:
+      - subnet: 2a01:4b00:ad59:aa00:0:2:2::/112

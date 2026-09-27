@@ -1,0 +1,61 @@
+services:
+  openclaw-gateway:
+    image: ghcr.io/openclaw/openclaw:latest
+    env_file:
+      - .env
+    volumes:
+      - ./volumes/config:/home/node/.openclaw
+      - ./volumes/workspace:/home/node/.openclaw/workspace
+    init: true
+    restart: unless-stopped
+    expose:
+      - 18789
+    command:
+      [
+        "node",
+        "dist/index.js",
+        "gateway",
+        "--bind",
+        "${OPENCLAW_GATEWAY_BIND:-lan}",
+        "--port",
+        "18789",
+      ]
+    networks:
+      - openclaw
+    labels:
+      traefik.enable: true
+      traefik.http.routers.openclaw.rule: Host(`openclaw.home.marcinszymanski.pl`)
+      traefik.http.routers.openclaw.tls.certresolver: letsencrypt
+      traefik.http.routers.openclaw.entrypoints: websecure
+      traefik.http.routers.openclaw.tls: true
+    healthcheck:
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  openclaw-cli:
+    image: ghcr.io/openclaw/openclaw:latest
+    env_file:
+      - .env
+    volumes:
+      - ./volumes/config:/home/node/.openclaw
+      - ./volumes/workspace:/home/node/.openclaw/workspace
+    stdin_open: true
+    tty: true
+    init: true
+    entrypoint: ["node", "dist/index.js"]
+    networks:
+      - openclaw
+    profiles:
+      - cli
+
+networks:
+  openclaw:
+    name: openclaw
+    enable_ipv6: true
+    enable_ipv4: true
+    ipam:
+      config:
+      - subnet: 2a01:4b00:ad59:aa00:0:2:9::/112
+      - subnet: 172.16.2.0/24

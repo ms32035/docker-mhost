@@ -1,0 +1,112 @@
+scheduler:
+  module: dagster.core.scheduler
+  class: DagsterDaemonScheduler
+
+run_coordinator:
+  module: dagster.core.run_coordinator
+  class: QueuedRunCoordinator
+
+run_launcher:
+  module: dagster_docker
+  class: DockerRunLauncher
+  config:
+    env_vars:
+      - DAGSTER_POSTGRES_HOST
+      - DAGSTER_POSTGRES_USER
+      - DAGSTER_POSTGRES_PASSWORD
+      - DAGSTER_POSTGRES_DB
+      - TRADING212_API_KEY
+      - GHOSTFOLIO_HOST
+      - GHOSTFOLIO_TOKEN
+      - PYTHONPATH
+      - IBKR_FLEX_TOKEN
+      - PUSHOVER_TOKEN
+      - PUSHOVER_KEY
+      - FRESHRSS_URL
+      - FRESHRSS_API_USER
+      - FRESHRSS_API_PASSWORD
+      - OLLAMA_URL
+      - OLLAMA_MODEL
+      - RSS_RELEVANCE_THRESHOLD
+      - TT_URL
+      - TT_API_KEY
+      - MANALYST_API_URL
+      - MLFLOW_TRACKING_URI
+
+    container_kwargs:
+      auto_remove: True
+      volumes: # Make docker client accessible to any launched containers as well
+        - /var/run/docker.sock:/var/run/docker.sock
+        - /tmp/io_manager_storage:/tmp/io_manager_storage
+        - /home/ms32035/docker/dagster/volumes/user_code:/user_code
+        - /home/ms32035/docker/dagster/volumes/storage:/dagster_home/storage
+        - /home/ms32035/docker/dagster/volumes/ssh:/ssh:ro
+
+run_storage:
+  module: dagster_postgres.run_storage
+  class: PostgresRunStorage
+  config:
+    postgres_db:
+      hostname:
+        env: DAGSTER_POSTGRES_HOST
+      username:
+        env: DAGSTER_POSTGRES_USER
+      password:
+        env: DAGSTER_POSTGRES_PASSWORD
+      db_name:
+        env: DAGSTER_POSTGRES_DB
+      port: 5432
+      params:
+        sslmode: require
+
+schedule_storage:
+  module: dagster_postgres.schedule_storage
+  class: PostgresScheduleStorage
+  config:
+    postgres_db:
+      hostname:
+        env: DAGSTER_POSTGRES_HOST
+      username:
+        env: DAGSTER_POSTGRES_USER
+      password:
+        env: DAGSTER_POSTGRES_PASSWORD
+      db_name:
+        env: DAGSTER_POSTGRES_DB
+      port: 5432
+      params:
+        sslmode: require
+
+event_log_storage:
+  module: dagster_postgres.event_log
+  class: PostgresEventLogStorage
+  config:
+    postgres_db:
+      hostname:
+        env: DAGSTER_POSTGRES_HOST
+      username:
+        env: DAGSTER_POSTGRES_USER
+      password:
+        env: DAGSTER_POSTGRES_PASSWORD
+      db_name:
+        env: DAGSTER_POSTGRES_DB
+      port: 5432
+      params:
+        sslmode: require
+
+telemetry:
+  enabled: false
+
+run_monitoring:
+  enabled: true
+
+python_logs:
+  managed_python_loggers:
+    - ghostfolio
+
+# Retention policies for tick history and other storage
+retention:
+  sensor:
+    purge_after_days:
+      skipped: 1
+      failure: 1
+      success: 1

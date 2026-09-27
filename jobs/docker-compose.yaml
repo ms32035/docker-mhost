@@ -1,0 +1,44 @@
+services:
+  job-ops:
+    image: ghcr.io/dakheera47/job-ops:latest
+    container_name: job-ops
+    volumes:
+      # Persist database and generated PDFs
+      - ./volumes/data:/app/data
+    environment:
+      # Server config
+      - NODE_ENV=production
+      - PORT=3001
+
+      # Python path (uses system python in container)
+      - PYTHON_PATH=/usr/bin/python3
+
+    env_file:
+      - path: ./.env
+        required: false
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    labels:
+      traefik.enable: true
+      traefik.http.routers.jobs.rule: Host(`jobs.home.marcinszymanski.pl`)
+      traefik.http.routers.jobs.tls.certresolver: letsencrypt
+      traefik.http.routers.jobs.entrypoints: websecure
+      traefik.http.routers.jobs.tls: true
+      traefik.docker.network: jobs
+
+
+    networks:
+      - jobs
+
+networks:
+  jobs:
+    name: jobs
+    enable_ipv6: true
+    ipam:
+      config:
+      - subnet: 2a01:4b00:ad59:aa00:0:2:11::/112

@@ -1,0 +1,49 @@
+services:
+  ns2:
+    image: technitium/dns-server:latest
+    container_name: ns2
+    hostname: ns2
+    ports:
+      - 53:53/tcp
+      - 53:53/udp
+      - 853:853/tcp
+    expose:
+      - 443
+      - 5380
+    volumes:
+      - ./volumes/config:/etc/dns
+      - ./volumes/log:/var/log/technitium/dns
+    restart: always
+    labels:
+      traefik.enable: true
+      traefik.docker.network: ns2
+
+      # Admin UI – Traefik terminates with Let's Encrypt
+      traefik.http.routers.ns2.rule: Host(`ns2.home.marcinszymanski.pl`)
+      traefik.http.routers.ns2.entrypoints: websecure
+      traefik.http.routers.ns2.tls: true
+      traefik.http.routers.ns2.tls.certresolver: letsencrypt
+      traefik.http.routers.ns2.service: ns2
+      traefik.http.services.ns2.loadbalancer.server.port: 5380
+
+      # Cluster – raw TLS straight to Technitium's HTTPS web service
+      traefik.tcp.routers.ns2-cluster.rule: HostSNI(`ns2.dns.marcinszymanski.pl`)
+      traefik.tcp.routers.ns2-cluster.entrypoints: websecure
+      traefik.tcp.routers.ns2-cluster.tls.passthrough: true
+      traefik.tcp.routers.ns2-cluster.service: ns2-cluster
+      traefik.tcp.services.ns2-cluster.loadbalancer.server.port: 443
+    networks:
+      - ns2
+    deploy:
+      resources:
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+networks:
+  ns2:
+    name: ns2
+    enable_ipv6: true
+    ipam:
+      config:
+      - subnet: 2a01:4b00:ad59:aa00:0:2:1::/112

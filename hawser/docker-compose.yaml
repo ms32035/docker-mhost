@@ -1,0 +1,28 @@
+services:
+  hawser:
+    image: ghcr.io/finsys/hawser:latest
+    container_name: hawser
+    env_file:
+      - .env
+    restart: always
+    ports:
+      - 2376:2376
+
+    networks:
+      - hawser
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./volumes/hawser-stacks:/opt/hawser-stacks
+
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
+networks:
+  hawser:
+    name: hawser
+    enable_ipv6: true
+    ipam:
+      config:
+      - subnet: 2a01:4b00:ad59:aa00:0:2:0::/112

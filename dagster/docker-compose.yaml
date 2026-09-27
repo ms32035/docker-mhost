@@ -1,0 +1,73 @@
+services:
+
+  webserver:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    image: dagster
+    entrypoint:
+      - /bin/sh
+      - -c
+      - python /user_code/workspace_from_dg.py && dagster-webserver -h 0.0.0.0 -p 3000 -w /tmp/workspace.generated.yaml
+    container_name: dagster_webserver
+    restart: always
+    expose:
+      - "3000"
+    env_file:
+      - dagster.env
+    volumes: # Make docker client accessible so we can terminate containers from dagit
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /tmp/io_manager_storage:/tmp/io_manager_storage
+      - ./config/dagster.yaml:/dagster_home/dagster.yaml
+      - ./volumes/user_code:/user_code
+      - ./volumes/ssh:/ssh:ro
+    networks:
+      - dagster
+      - dagster_backend
+    labels:
+      traefik.enable: true
+      traefik.http.routers.dagster.rule: Host(`dagster.home.marcinszymanski.pl`)
+      traefik.http.routers.dagster.tls.certresolver: letsencrypt
+      traefik.http.routers.dagster.entrypoints: websecure
+      traefik.http.routers.dagster.tls: true
+      traefik.docker.network: dagster
+      dockhand.update: false
+
+
+  # This service runs the dagster-daemon process, which is responsible for taking runs
+  # off of the queue and launching them, as well as creating runs from schedules or sensors.
+  daemon:
+    image: dagster
+    entrypoint:
+      - /bin/sh
+      - -c
+      - python /user_code/workspace_from_dg.py && dagster-daemon run -w /tmp/workspace.generated.yaml
+    container_name: dagster_daemon
+    restart: always
+    env_file:
+      - dagster.env
+    volumes: # Make docker client accessible so we can launch containers using host docker
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /tmp/io_manager_storage:/tmp/io_manager_storage
+      - ./config/dagster.yaml:/dagster_home/dagster.yaml
+      - ./volumes/user_code:/user_code
+    networks:
+      - dagster_backend
+    depends_on:
+      - webserver
+    labels:
+      dockhand.update: false
+
+networks:
+  dagster:
+    name: dagster
+    enable_ipv6: true
+    ipam:
+      config:
+      - subnet: 2a01:4b00:ad59:aa00:0:2:7::/112
+  dagster_backend:
+    name: dagster_backend
+    enable_ipv6: true
+    ipam:
+      config:
+      - subnet: 2a01:4b00:ad59:aa00:0:2:8::/112

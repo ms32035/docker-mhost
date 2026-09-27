@@ -1,0 +1,4 @@
+volumes/
+*.env
+.gitsecret/keys/random_seed
+homepage/

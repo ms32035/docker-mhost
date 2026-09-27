@@ -1,0 +1,29 @@
+services:
+  optuna:
+    image: ghcr.io/optuna/optuna-dashboard
+    container_name: optuna
+    labels:
+      traefik.enable: true
+      traefik.http.routers.optuna.rule: Host(`optuna.home.marcinszymanski.pl`)
+      traefik.http.routers.optuna.tls.certresolver: letsencrypt
+      traefik.http.routers.optuna.entrypoints: websecure
+      traefik.http.routers.optuna.tls: true
+      traefik.docker.network: optuna
+    command: ${DASHBOARD_COMMAND}
+    restart: always
+
+    networks:
+      - optuna
+
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+networks:
+  optuna:
+    name: optuna
+    enable_ipv6: true
+    ipam:
+      config:
+      - subnet: 2a01:4b00:ad59:aa00:0:2:4::/112

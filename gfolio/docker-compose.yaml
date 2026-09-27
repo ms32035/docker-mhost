@@ -1,0 +1,62 @@
+services:
+  ghostfolio:
+    container_name: gfolio
+    image: ghostfolio/ghostfolio:latest
+    restart: always
+    env_file:
+      - gfolio.env
+
+    labels:
+      traefik.enable: true
+      traefik.http.routers.gfolio.rule: Host(`gfolio.home.marcinszymanski.pl`)
+      traefik.http.routers.gfolio.tls.certresolver: letsencrypt
+      traefik.http.routers.gfolio.entrypoints: websecure
+      traefik.http.routers.gfolio.tls: true
+      traefik.docker.network: gfolio
+    networks:
+      - gfolio_backend
+      - gfolio
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -f http://localhost:3333/api/v1/health']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    container_name: gfolio_redis
+    image: redis:alpine
+    restart: always
+    networks:
+      - gfolio_backend
+    env_file:
+      - redis.env
+    volumes:
+      - redis_data:/data
+    # command: ["redis-server", "--requirepass", "$$REDIS_PASSWORD"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      # test: ["CMD", "redis-cli", "-a", "$$REDIS_PASSWORD", "ping"]
+      interval: 10s
+      timeout: 30s
+      retries: 3
+
+networks:
+  gfolio:
+    name: gfolio
+    enable_ipv6: true
+    ipam:
+      config:
+      - subnet: 2a01:4b00:ad59:aa00:0:2:5::/112
+  gfolio_backend:
+    name: gfolio_backend
+    enable_ipv6: true
+    ipam:
+      config:
+      - subnet: 2a01:4b00:ad59:aa00:0:2:6::/112
+
+volumes:
+  redis_data:
+    driver: local
