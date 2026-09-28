@@ -43,9 +43,12 @@ services:
       - "host.docker.internal:host-gateway"
     networks:
       dagster:
+      fairtrail:
+      fitness:
       gfolio:
       jobs:
       llms:
+      medikeep:
       mfinance:
       mlflow:
       ns2:
@@ -54,6 +57,7 @@ services:
         ipv4_address: 172.16.2.10
       optuna:
       resume:
+      securo:
       tools:
 
 
@@ -81,6 +85,12 @@ networks:
   dagster:
     name: dagster
     external: true
+  fairtrail:
+    name: fairtrail
+    external: true
+  fitness:
+    name: fitness
+    external: true
   gfolio:
     name: gfolio
     external: true
@@ -89,6 +99,9 @@ networks:
     external: true
   llms:
     name: llms
+    external: true
+  medikeep:
+    name: medikeep
     external: true
   mfinance:
     name: mfinance
@@ -107,6 +120,9 @@ networks:
     external: true
   resume:
     name: resume
+    external: true
+  securo:
+    name: securo
     external: true
   tools:
     name: tools

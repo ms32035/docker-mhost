@@ -1,0 +1,52 @@
+services:
+
+
+  redis:
+    image: redis:alpine
+    restart: always
+    volumes:
+      - redis_data:/data
+    networks:
+      - fairtrail_backend
+
+  web:
+    image: ghcr.io/affromero/flight-finder:latest
+    restart: always
+    #init: true
+    depends_on:
+      - redis
+    volumes:
+      - analytics-data:/app/data
+      - cli-cache:/home/node/.npm-global
+    env_file:
+      - .env
+    networks:
+      - fairtrail
+      - fairtrail_backend
+    labels:
+      traefik.enable: true
+      traefik.http.routers.fairtrail.rule: Host(`fairtrail.home.marcinszymanski.pl`)
+      traefik.http.routers.fairtrail.tls.certresolver: letsencrypt
+      traefik.http.routers.fairtrail.entrypoints: websecure
+      traefik.http.routers.fairtrail.tls: true
+      traefik.docker.network: fairtrail
+
+
+networks:
+  fairtrail:
+    name: fairtrail
+    enable_ipv6: true
+    ipam:
+      config:
+      - subnet: 2a01:4b00:ad59:aa00:0:2:14::/112
+  fairtrail_backend:
+    name: fairtrail_backend
+    enable_ipv6: true
+    ipam:
+      config:
+      - subnet: 2a01:4b00:ad59:aa00:0:2:15::/112
+
+volumes:
+  redis_data:
+  cli-cache:
+  analytics-data:

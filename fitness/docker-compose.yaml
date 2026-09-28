@@ -1,0 +1,37 @@
+services:
+  sparkyfitness-server:
+    image: codewithcj/sparkyfitness_server:latest # Use pre-built image
+    env_file:
+      - .env
+    volumes:
+      - ./volumes/backup:/app/SparkyFitnessServer/backup # Mount volume for backups
+      - ./volumes/uploads:/app/SparkyFitnessServer/uploads # Mount volume for Profile pictures and excercise images
+    restart: always
+    networks:
+      - fitness
+
+
+  sparkyfitness-frontend:
+    image: codewithcj/sparkyfitness:latest
+    env_file:
+      - frontend.env
+
+    networks:
+      - fitness # Use the new named network
+    restart: always
+    depends_on:
+      - sparkyfitness-server # Ensure the backend starts before the frontend
+    labels:
+      traefik.enable: true
+      traefik.http.routers.fitness.rule: Host(`fitness.home.marcinszymanski.pl`)
+      traefik.http.routers.fitness.tls.certresolver: letsencrypt
+      traefik.http.routers.fitness.entrypoints: websecure
+      traefik.http.routers.fitness.tls: true
+
+networks:
+  fitness:
+    name: fitness
+    enable_ipv6: true
+    ipam:
+      config:
+      - subnet: 2a01:4b00:ad59:aa00:0:2:16::/112

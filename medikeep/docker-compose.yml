@@ -1,0 +1,34 @@
+services:
+  medikeep:
+    image: ghcr.io/afairgiant/medikeep:latest
+    container_name: medikeep
+    env_file:
+      - .env
+    labels:
+      traefik.enable: true
+      traefik.http.routers.medikeep.rule: Host(`medikeep.home.marcinszymanski.pl`)
+      traefik.http.routers.medikeep.tls.certresolver: letsencrypt
+      traefik.http.routers.medikeep.entrypoints: websecure
+      traefik.http.routers.medikeep.tls: true
+      traefik.docker.network: medikeep
+    restart: always
+
+    networks:
+      - medikeep
+    volumes:
+      - ./volumes/medikeep_uploads:/app/uploads
+      - ./volumes/medikeep_logs:/app/logs
+      - ./volumes/medikeep_backups:/app/backups
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:8000/health']
+      interval: 60s
+      timeout: 10s
+      retries: 3
+
+networks:
+  medikeep:
+    name: medikeep
+    enable_ipv6: true
+    ipam:
+      config:
+      - subnet: 2a01:4b00:ad59:aa00:0:2:17::/112

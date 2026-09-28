@@ -41,6 +41,8 @@ run_launcher:
         - /home/ms32035/docker/dagster/volumes/user_code:/user_code
         - /home/ms32035/docker/dagster/volumes/storage:/dagster_home/storage
         - /home/ms32035/docker/dagster/volumes/ssh:/ssh:ro
+    networks:
+      - dagster_backend
 
 run_storage:
   module: dagster_postgres.run_storage
