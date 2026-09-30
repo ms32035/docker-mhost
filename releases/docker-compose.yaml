@@ -1,0 +1,26 @@
+services:
+  release_monitor:
+    container_name: release_monitor
+    image: "ghcr.io/iamspido/github-release-monitor:latest"
+    labels:
+      traefik.enable: true
+      traefik.http.routers.releases.rule: Host(`releases.home.marcinszymanski.pl`)
+      traefik.http.routers.releases.tls.certresolver: letsencrypt
+      traefik.http.routers.releases.entrypoints: websecure
+      traefik.http.routers.releases.tls: true
+    volumes:
+      - "./volumes/data:/app/data"
+    env_file:
+      - ".env"
+
+    restart: always
+    networks:
+      - releases
+
+networks:
+  releases:
+    name: releases
+    enable_ipv6: true
+    ipam:
+      config:
+      - subnet: 2a01:4b00:ad59:aa00:0:2:21::/112

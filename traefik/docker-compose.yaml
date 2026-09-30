@@ -42,9 +42,13 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
+      apprise:
       dagster:
+      databasus:
+      domains:
       fairtrail:
       fitness:
+      freshrss:
       gfolio:
       jobs:
       llms:
@@ -56,9 +60,11 @@ services:
         ipv6_address: 2a01:4b00:ad59:aa00:0:2:9:10
         ipv4_address: 172.16.2.10
       optuna:
+      releases:
       resume:
       securo:
       tools:
+      uptime:
 
 
   certs-dumper:
@@ -82,14 +88,26 @@ services:
 
 
 networks:
+  apprise:
+    name: apprise
+    external: true
   dagster:
     name: dagster
+    external: true
+  databasus:
+    name: databasus
+    external: true
+  domains:
+    name: domains
     external: true
   fairtrail:
     name: fairtrail
     external: true
   fitness:
     name: fitness
+    external: true
+  freshrss:
+    name: freshrss
     external: true
   gfolio:
     name: gfolio
@@ -118,6 +136,9 @@ networks:
   optuna:
     name: optuna
     external: true
+  releases:
+    name: releases
+    external: true
   resume:
     name: resume
     external: true
@@ -126,4 +147,7 @@ networks:
     external: true
   tools:
     name: tools
+    external: true
+  uptime:
+    name: uptime
     external: true

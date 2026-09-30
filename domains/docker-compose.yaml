@@ -1,0 +1,45 @@
+services:
+
+
+  app:
+    image: lissy93/domain-locker:latest # or ghcr.io/lissy93/domain-locker:latest
+    container_name: domain-locker
+    restart: always
+    env_file:
+      - .env
+    networks:
+      - domains
+    labels:
+      traefik.enable: true
+      traefik.http.routers.domains.rule: Host(`domains.home.marcinszymanski.pl`)
+      traefik.http.routers.domains.tls.certresolver: letsencrypt
+      traefik.http.routers.domains.entrypoints: websecure
+      traefik.http.routers.domains.tls: true
+      traefik.docker.network: domains
+
+
+  updater:
+    image: alpine:latest
+    container_name: domain-locker-updater
+    restart: always
+    depends_on:
+      - app
+    networks:
+      - domains
+    command: >
+      /bin/sh -c "
+        apk add --no-cache curl &&
+        echo '0 3 * * * /usr/bin/curl -s -X POST http://app:3000/api/domain-updater' > /etc/crontabs/root &&
+        echo '0 4 * * * /usr/bin/curl -s -X POST http://app:3000/api/expiration-reminders' >> /etc/crontabs/root &&
+        crond -f -L /dev/stdout
+      "
+
+
+networks:
+  backend:
+  domains:
+    name: domains
+    enable_ipv6: true
+    ipam:
+      config:
+      - subnet: 2a01:4b00:ad59:aa00:0:2:25::/112

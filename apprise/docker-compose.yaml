@@ -1,0 +1,28 @@
+services:
+
+  apprise:
+    container_name: "apprise"
+    image: "caronc/apprise:latest"
+    restart: "always"
+    networks:
+      - "apprise"
+    env_file:
+      - .env
+    labels:
+      traefik.enable: true
+      traefik.http.routers.apprise.rule: Host(`apprise.home.marcinszymanski.pl`)
+      traefik.http.routers.apprise.tls.certresolver: letsencrypt
+      traefik.http.routers.apprise.entrypoints: websecure
+      traefik.http.routers.apprise.tls: true
+    volumes:
+      - ./volumes/config:/config
+      - ./volumes/attach:/attach
+      - ./volumes/plugin:/plugin
+
+networks:
+  apprise:
+    name: apprise
+    enable_ipv6: true
+    ipam:
+      config:
+      - subnet: 2a01:4b00:ad59:aa00:0:2:20::/112

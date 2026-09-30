@@ -1,0 +1,24 @@
+services:
+  uptime-kuma:
+    image: louislam/uptime-kuma:2
+    restart: always
+    volumes:
+      - ./volumes/data:/app/data
+    labels:
+      traefik.enable: true
+      traefik.http.routers.uptime.rule: Host(`uptime.home.marcinszymanski.pl`)
+      traefik.http.routers.uptime.tls.certresolver: letsencrypt
+      traefik.http.routers.uptime.entrypoints: websecure
+      traefik.http.routers.uptime.tls: true
+      traefik.docker.network: uptime
+
+    networks:
+      - uptime
+
+networks:
+  uptime:
+    name: uptime
+    enable_ipv6: true
+    ipam:
+      config:
+      - subnet: 2a01:4b00:ad59:aa00:0:2:24::/112

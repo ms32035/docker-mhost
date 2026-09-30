@@ -1,0 +1,38 @@
+services:
+
+  freshrss:
+    image: freshrss/freshrss:latest
+    container_name: freshrss
+    restart: always
+    env_file:
+      - .env
+    environment:
+      TZ: Europe/London
+      CRON_MIN: "*/15"          # fetch new articles every 15 mins
+    volumes:
+      - ./volumes/freshrss_data:/var/www/FreshRSS/data
+      - ./volumes/freshrss_extensions:/var/www/FreshRSS/extensions
+    healthcheck:
+      test: ["CMD", "cli/health.php"]
+      timeout: 10s
+      start_period: 60s
+      start_interval: 10s
+      interval: 75s
+      retries: 3
+    networks:
+      - freshrss
+    labels:
+      traefik.enable: true
+      traefik.http.routers.freshrss.rule: Host(`rss.home.marcinszymanski.pl`)
+      traefik.http.routers.freshrss.tls.certresolver: letsencrypt
+      traefik.http.routers.freshrss.entrypoints: websecure
+      traefik.http.routers.freshrss.tls: true
+
+
+networks:
+  freshrss:
+    name: freshrss
+    enable_ipv6: true
+    ipam:
+      config:
+      - subnet: 2a01:4b00:ad59:aa00:0:2:22::/112

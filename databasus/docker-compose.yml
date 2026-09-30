@@ -1,0 +1,25 @@
+services:
+  databasus:
+    image: databasus/databasus:latest
+    container_name: databasus
+    labels:
+      traefik.enable: true
+      traefik.http.routers.databasus.rule: Host(`databasus.home.marcinszymanski.pl`)
+      traefik.http.routers.databasus.tls.certresolver: letsencrypt
+      traefik.http.routers.databasus.entrypoints: websecure
+      traefik.http.routers.databasus.tls: true
+      traefik.docker.network: databasus
+    restart: always
+
+    networks:
+      - databasus
+    volumes:
+      - ./volumes/data:/databasus-data
+
+networks:
+  databasus:
+    name: databasus
+    enable_ipv6: true
+    ipam:
+      config:
+      - subnet: 2a01:4b00:ad59:aa00:0:2:23::/112
